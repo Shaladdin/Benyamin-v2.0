@@ -1,0 +1,28 @@
+{
+  "name": "benyamin",
+  "version": "2.0.0",
+  "description": "benyamin source code",
+  "main": "index.js",
+  "scripts": {
+    "test": "start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shaladdin/Benyamin-v2.0.git"
+  },
+  "keywords": [
+    "arduino",
+    "rfid",
+    "websocket",
+    "benyaim"
+  ],
+  "author": "Shaladdin.js",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shaladdin/Benyamin-v2.0/issues"
+  },
+  "homepage": "https://github.com/Shaladdin/Benyamin-v2.0#readme",
+  "dependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
