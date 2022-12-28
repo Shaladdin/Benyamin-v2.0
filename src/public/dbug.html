@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+
+<body>
+    <textarea name="input" id="wsIn" cols="30" rows="10">
+    {
+        "msg": "connectClient"
+    }
+    </textarea>
+    <button>send</button>
+    <br>
+    // request example:
+    /*
+    <br>
+    {
+        "message": "authRequest",
+        "type" : "device",
+        "deviceKind" : "Benyamin",
+        "id" : "db4edab1-277f"
+    }
+    <br><br>
+    {
+        "message": "authRequest",
+        "type" : "client"
+    }
+    <br>
+    {
+        "message": "user",
+        "type" : "new",
+        "user":{
+            "cardId": "69420",
+            "name" : "Zib Zibowsky",
+            "data":{
+                "bornDate":"*insert date here*",
+                "gender":"male"
+            }
+        }
+    }
+    <br>    
+    {
+        "message": "user",
+        "type": "delete",
+        "cardId":"69420"
+    }
+    <br>
+    {
+        "message": "sesion",
+        "type" : "new",
+        "endTime": "2022-12-28T15:03:46.993Z"
+    }
+    <br>    
+    {
+        "message": "sesion",
+        "type" : "delete"
+    }
+    <br>    
+    */
+</body>
+<script src="./js/ws.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    var currentSocket;
+    var firstInit = true;
+    const input = document.getElementById('wsIn');
+    init((socket) => {
+        currentSocket = socket;
+        if (firstInit)
+            document.getElementsByTagName('button')[0].addEventListener("click", () => currentSocket.send(input.value));
+        firstInit = false;
+    });
+</script>
+
+</html>

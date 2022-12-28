@@ -1,0 +1,202 @@
+import WebSocket from 'ws';
+import nedb from 'nedb';
+import IOTServer, { Connection, Client, Device, //Class
+ } from "websocketiot";
+/*
+TODO: error handler on:
+*database
+
+
+*/
+// Utils
+const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+};
+// Databases 
+class Databases {
+    database;
+    static databaseFolder = './src/db/';
+    count = async (query) => new Promise((resolve, reject) => { this.database.count(query, (err, n) => { if (err)
+        throw err; resolve(n); }); });
+    remove = async (query, option = {}) => new Promise((resolve, reject) => { this.database.remove(query, option, (err, numberRemoved) => { if (err)
+        throw err; resolve(numberRemoved); }); });
+    insert = async (data) => new Promise((resolve, reject) => { this.database.insert(data, (err, doc) => { if (err)
+        throw err; resolve(doc); }); });
+    update = async (query, update, option = {}) => new Promise((resolve, reject) => { this.database.update(query, update, option, (err, numberUpdated) => { if (err)
+        throw err; resolve(numberUpdated); }); });
+    find = async (query, projection) => new Promise((resolve, reject) => {
+        const handleDoc = (err, doc) => { if (err)
+            throw err; resolve(doc); };
+        if (projection)
+            this.database.find(query, projection, handleDoc);
+        else
+            this.database.find(query, handleDoc);
+    });
+    // dbObjects
+    dbObjects = {};
+    addObjects = (key, value) => this.dbObjects[key] = new dbObject(key, value, this);
+    constructor(databaseName) {
+        this.database = new nedb({ filename: Databases.databaseFolder + databaseName + '.db', autoload: true });
+        this.database.persistence.setAutocompactionInterval(5000);
+        this.database.loadDatabase();
+    }
+}
+class dbObject {
+    static objects = {};
+    database;
+    key;
+    _value;
+    set value(val) { this.database.update({ type: 'dbObject', key: this.key }, { $set: { value: val } }, { upsert: true }); this._value = val; }
+    ;
+    get value() { return this._value; }
+    ;
+    loadValue = async () => { let load = (await this.database.find({ type: 'dbObject', key: this.key }))[0].value; return load; };
+    constructor(key, value, database = db.Objects) {
+        this.database = database;
+        this.key = key;
+        this._value = value;
+        this.loadValue().then((load) => { if (load)
+            this._value = load; });
+        dbObject.objects[key] = this;
+    }
+}
+const db = {
+    Users: new Databases('Users'),
+    Sesions: new Databases('Sesions'),
+    Objects: new Databases('Objects'),
+};
+// * "an compiler code, because typescript lacking in built in function .-_-."
+const blankTime = new Date();
+const extend = (obj1, obj2) => Object.assign({}, obj1, obj2);
+;
+;
+;
+const userLiteral = { cardId: "69420", name: "Zib Zibowsky", classData: { class: "9.9", absen: 1 }, data: { bornDate: "*insert date here*", gender: "male" }, history: [] };
+const literals = {
+    accesCommands: { message: '', type: 'new' },
+    user: {
+        user: userLiteral,
+        newUserCommand: { message: '', type: 'new', user: userLiteral },
+        deleteUserCommand: { message: '', type: 'new', cardId: '' },
+    },
+    sesion: {
+        sesion: { attendence: [], sesionTime: { startTime: blankTime } },
+        newSesionCommand: { message: '', type: 'new' },
+    }
+};
+// Local Circular Connection //basicly decoy connection just to use the client handler and stuff
+const lcc = new Connection(new WebSocket(null), () => { }, true);
+//! Main
+const Server = new IOTServer({ port: 8080, usePublic: true });
+const currentSesion = new dbObject("currentSesion", "none");
+await currentSesion.loadValue();
+// handler utils
+class Handler {
+    connection;
+    error = (errorMsg, lccVal, ...log) => { this.connection.sendError(errorMsg); log ? this.connection.log(...log) : undefined; return lccVal; };
+    noCommandFound = () => { this.connection.sendError("no command found"); return "no command found"; };
+    ok = () => { this.connection.send({ message: '200 ok' }); return '200 ok'; };
+    constructor(connection) {
+        this.connection = connection;
+    }
+}
+Client.clientHandler = async (req, connection = lcc) => {
+    try {
+        if (connection.isDecoy)
+            connection.log('using lcc (Local Circular Connection):');
+        const clientHandler = new Handler(connection);
+        const { error, noCommandFound, ok } = clientHandler;
+        switch (req.message) {
+            case "user":
+                switch (req.type) {
+                    case "new":
+                        // *Create new User
+                        if (!connection.checkFormat(req, literals.user.newUserCommand))
+                            return "wrong format";
+                        const { user } = req;
+                        let registerd = await db.Users.find({ cardId: user.cardId });
+                        if (registerd.length !== 0)
+                            return error(`the id: ${user.cardId} is already registered`, "already done", `reattemp to registering the id ${user.cardId}, its already taken by: `, registerd);
+                        db.Users.insert(user);
+                        connection.log('sucsessfully register the id ', user.cardId, ' as: ', user);
+                        return ok();
+                    case "delete":
+                        // *Delete User
+                        if (!connection.checkFormat(req, literals.user.deleteUserCommand))
+                            return "wrong format";
+                        if (await db.Users.remove({ cardId: req.cardId }) == 0)
+                            return error(`cannot find the id: ${req.cardId}`, "not exist", `attemp to delete nonexisting id: `, req.cardId);
+                        connection.log(`successfully delete the id: `, req.cardId);
+                        return ok();
+                    default:
+                        return noCommandFound();
+                }
+                ;
+            // Accessing the *current* sesion
+            case "sesion":
+                if (!connection.checkFormat(req, literals.sesion.newSesionCommand))
+                    return "wrong format";
+                switch (req.type) {
+                    case "new":
+                        // if the "end time" is defined, then compile it into "Date" object
+                        if (req.endTime)
+                            req.endTime = new Date(req.endTime);
+                        // check if theris already sesion running
+                        // if there is, then error
+                        if (currentSesion.value !== "none")
+                            return error(`A sesion is already running`, "already done", `attemp on override a sesion`);
+                        // if there is not create one, then set the current sesion to this one
+                        // create new sesion
+                        const newSesion = {
+                            attendence: [],
+                            sesionTime: {
+                                startTime: new Date(),
+                                endTime: req.endTime,
+                            }
+                        };
+                        // save it to the database, and set it as current sesion
+                        const sesion = (await db.Sesions.insert(newSesion));
+                        currentSesion.value = sesion._id;
+                        connection.log(`new sesion created: `, sesion);
+                        return ok();
+                    case "delete":
+                        // if there is no sesion running
+                        if (currentSesion.value === "none")
+                            return error(`no sesion is currently running`, "not exist", 'attemp to stop an non existing sesion');
+                        stopSesion();
+                        connection.log(`sesion stopped as requested`);
+                        return ok();
+                    default:
+                        return noCommandFound();
+                }
+            default:
+                return noCommandFound();
+        }
+    }
+    catch (e) {
+        throw e;
+    }
+};
+// Main Robot code
+class Benyamin extends Device {
+    deviceKind = 'Benyamin';
+    constructor(ws, id) {
+        super(ws, (msg) => {
+            this.log('you did it');
+        }, id);
+    }
+}
+Device.addDeviceKinds(Benyamin);
+// TODO:
+// Just to check wather it is expired or not
+function updateSesion() {
+}
+function stopSesion() {
+    console.log("!stopping sesion!");
+    currentSesion.value = "none";
+}
+/*
+!low priority todo:
+TODO: User.edit
+*/ 
+//# sourceMappingURL=index.js.map

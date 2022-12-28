@@ -1,0 +1,12 @@
+{
+    "message": "user",
+    "type" : "new",
+    "user":{
+        "cardId": "69420",
+        "name" : "Zib Zibowsky",
+        "data":{
+            "bornDate":"*insert date here*",
+            "gender":"male"
+        }
+    }
+}

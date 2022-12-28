@@ -2,9 +2,12 @@
   "name": "benyamin",
   "version": "2.0.0",
   "description": "benyamin source code",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "type": "module",
   "scripts": {
-    "test": "start"
+    "debug": "nodemon nodemon -e * .",
+    "test": "node .",
+    "dev": "tsc --declaration"
   },
   "repository": {
     "type": "git",
@@ -23,6 +26,18 @@
   },
   "homepage": "https://github.com/Shaladdin/Benyamin-v2.0#readme",
   "dependencies": {
-    "nodemon": "^2.0.20"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.1",
+    "nedb": "^1.8.0",
+    "nodemon": "^2.0.20",
+    "websocketiot": "latest",
+    "ws": "^8.9.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.14",
+    "@types/nedb": "^1.8.12",
+    "@types/node": "^18.11.14",
+    "@types/ws": "^8.5.3",
+    "typescript": "^4.9.4"
   }
 }

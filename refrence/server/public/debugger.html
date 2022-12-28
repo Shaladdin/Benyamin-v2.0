@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+
+<body>
+    <textarea name="input" id="wsIn" cols="30" rows="10">
+    {
+        "msg": "connectClient"
+    }
+    </textarea>
+    <button>send</button>
+    <br>
+    // request example:
+    /*
+    <br>
+
+    <br><br>
+    */
+</body>
+<script src="./js/ws.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    const input = document.getElementById('wsIn');
+    const button = () => document.getElementsByTagName('button')[0];
+    init((socket) => {
+        function run() { socket.send(input.value); }
+        removeAllEvents(button()).addEventListener("click", run);
+    });
+</script>
+
+</html>
