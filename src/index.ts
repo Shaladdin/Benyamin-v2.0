@@ -69,7 +69,7 @@ const db = {
 
 
 interface Sesion {
-    attendence: [],
+    attendence: string[],
     sesionTime: {
         startTime: Date,
         endTime?: Date,
@@ -87,10 +87,11 @@ interface User {
         gender: "male" | "female" | "mentally Il",
         [key: string]: string,
     },
-    history: Sesion[]
+    history: string[]
 }
 
 // * "an compiler code, because typescript lacking in built in function .-_-."
+// client
 const blankTime = new Date();
 const extend = <T, U>(obj1: T, obj2: U): T & U => Object.assign({}, obj1, obj2);
 interface AccesCommand extends BasicWsiotMsg { type: "new" | "edit" | "delete" | "get"; };
@@ -109,38 +110,52 @@ interface NewUserCommand extends AccesCommand {
             gender: "male" | "female" | "mentally Il",
             [key: string]: string,
         },
-        history: Sesion[]
+        history: string[]
     }
 }
+
+// robot
+interface AbsenRequest extends BasicWsiotMsg { cardId: string };
+
+const userLiteral: User = { cardId: "69420", name: "Zib Zibowsky", classData: { class: "9.9", absen: 1 }, data: { bornDate: "*insert date here*", gender: "male" }, history: [] };
 interface Literals {
     accesCommands: AccesCommand,
-    user: {
-        user: User;
-        newUserCommand: NewUserCommand,
-        deleteUserCommand: DeleteUserCommand,
+    client: {
+        user: {
+            user: User;
+            newUserCommand: NewUserCommand,
+            deleteUserCommand: DeleteUserCommand,
+        },
+        sesion: {
+            sesion: Sesion,
+            newSesionCommand: NewSesionCommand,
+        }
     },
-    sesion: {
-        sesion: Sesion,
-        newSesionCommand: NewSesionCommand,
+    benyamin: {
+        absenRequest: AbsenRequest,
     }
 }
-const userLiteral: User = { cardId: "69420", name: "Zib Zibowsky", classData: { class: "9.9", absen: 1 }, data: { bornDate: "*insert date here*", gender: "male" }, history: [] };
 const literals: Literals = {
     accesCommands: { message: '', type: 'new' },
-    user: {
-        user: userLiteral,
-        newUserCommand: { message: '', type: 'new', user: userLiteral },
-        deleteUserCommand: { message: '', type: 'new', cardId: '' },
+    client: {
+        user: {
+            user: userLiteral,
+            newUserCommand: { message: '', type: 'new', user: userLiteral },
+            deleteUserCommand: { message: '', type: 'new', cardId: '' },
+        },
+        sesion: {
+            sesion: { attendence: [], sesionTime: { startTime: blankTime } },
+            newSesionCommand: { message: '', type: 'new' },
+        }
     },
-    sesion: {
-        sesion: { attendence: [], sesionTime: { startTime: blankTime } },
-        newSesionCommand: { message: '', type: 'new' },
+    benyamin: {
+        absenRequest: { message: "absenRequest", cardId: "69420" }
     }
 }
 
 // Local Circular Connection //basicly decoy connection just to use the client handler and stuff
 const lcc = new Connection(new WebSocket(null), () => { }, true);
-type handlerResponse = "200 ok" | "no command found" | "wrong format" | "already done" | "not exist"
+type handlerResponse = "200 ok" | "no command found" | "wrong format" | "already done" | "not exist" | "pong"
 
 
 //! Main
@@ -173,7 +188,7 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
                 switch (req.type) {
                     case "new":
                         // *Create new User
-                        if (!connection.checkFormat(req, literals.user.newUserCommand)) return "wrong format";
+                        if (!connection.checkFormat(req, literals.client.user.newUserCommand)) return "wrong format";
                         const { user } = req;
                         let registerd = await db.Users.find({ cardId: user.cardId });
 
@@ -186,7 +201,7 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
                         return ok();
                     case "delete":
                         // *Delete User
-                        if (!connection.checkFormat(req, literals.user.deleteUserCommand)) return "wrong format";
+                        if (!connection.checkFormat(req, literals.client.user.deleteUserCommand)) return "wrong format";
 
                         if (await db.Users.remove({ cardId: req.cardId }) == 0)
                             return error(`cannot find the id: ${req.cardId}`, "not exist",
@@ -200,7 +215,7 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
                 };
             // Accessing the *current* sesion
             case "sesion":
-                if (!connection.checkFormat(req, literals.sesion.newSesionCommand)) return "wrong format";
+                if (!connection.checkFormat(req, literals.client.sesion.newSesionCommand)) return "wrong format";
                 switch (req.type) {
                     case "new":
                         // if the "end time" is defined, then compile it into "Date" object
@@ -227,7 +242,6 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
                         currentSesion.value = sesion._id;
                         connection.log(`new sesion created: `, sesion);
                         return ok();
-
                     case "delete":
                         // if there is no sesion running
                         if (currentSesion.value === "none")
@@ -253,15 +267,58 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
 class Benyamin extends Device {
     deviceKind: string = 'Benyamin';
     constructor(ws: WebSocket, id?: string) {
-        super(ws, (msg) => {
-            this.log('you did it')
+        super(ws, async (req): Promise<handlerResponse> => {
+            const { connection } = this;
+            const robotHandler = new Handler(connection);
+            const { error, noCommandFound, ok } = robotHandler;
+
+            switch (req.message) {
+                case "ping":
+                    // TODO: connection checker?
+                    connection.send({ message: "pong" });
+                    return "pong";
+                case "absenRequest":
+                    // absen request
+                    if (!connection.checkFormat(req, literals.benyamin.absenRequest)) return "wrong format";
+                    // get the user
+                    let user_ = await db.Users.find({ cardId: req.cardId });
+
+                    // if the user is not found
+                    if (user_.length === 0) return error("card id not found", "not exist",
+                        "attemp to absen on non existing user");
+
+                    interface userResult extends User { _id: string }
+                    const user: userResult = user_[0];
+
+                    // check if there is a sesion running
+                    // If not then error
+                    if (currentSesion.value == "none")
+                        return error("no sesion is currently running", "not exist",
+                            "absen attemp on non existing sesion");
+                    // get the sesion, then check have they absen already
+                    interface sesionResult extends Sesion { _id: string }
+                    const sesion: sesionResult = (await db.Sesions.find({ _id: currentSesion.value }))[0];
+                    if (sesion === undefined) throw "Unexpected Internal Error, null pointer to sesion";
+                    // If yes, then error
+                    if (sesion.attendence.filter((val) => val == user.cardId).length > 0)
+                        return error("this card is already present", "already done",
+                            "reabsen attemb on card ", user.cardId);
+                    // add the user to the attendence list
+                    db.Sesions.update({ _id: sesion._id }, { $push: { attendence: { cardId: user.cardId, time: new Date() } } })
+                    db.Users.update({ _id: user._id }, { $push: { history: sesion._id } });
+                    // add sesion to the user history
+
+                    return ok();
+                default:
+                    return noCommandFound();
+            }
         }, id);
     }
 }
 Device.addDeviceKinds(Benyamin);
 
 
-// TODO:
+// ! TODO:
 // Just to check wather it is expired or not
 function updateSesion() {
 

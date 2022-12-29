@@ -1,2 +1,1 @@
-{"attendence":[],"sesionTime":{"startTime":{"$$date":1672240677316},"endTime":{"$$date":1672239826993}},"_id":"7sGg7lIx1MbqK5j8"}
-{"attendence":[],"sesionTime":{"startTime":{"$$date":1672241811182}},"_id":"aci41WzKkxMMCbsc"}
+{"attendence":[{"cardId":"69420","time":{"$$date":1672328614435}}],"sesionTime":{"startTime":{"$$date":1672328597995},"endTime":{"$$date":1672239826993}},"_id":"aw7zKUtLPnmpuL8F"}
