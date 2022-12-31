@@ -1,4 +1,4 @@
-entrypoint = "src/server/index.js"
+entrypoint = "dist/index.js"
 
 hidden = [".config"]
 
