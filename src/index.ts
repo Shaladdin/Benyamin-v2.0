@@ -69,7 +69,7 @@ const db = {
 
 
 interface Sesion {
-    attendence: string[],
+    attendence: { cardId: string, time: Date }[],
     sesionTime: {
         startTime: Date,
         endTime?: Date,
@@ -300,7 +300,7 @@ class Benyamin extends Device {
                     const sesion: sesionResult = (await db.Sesions.find({ _id: currentSesion.value }))[0];
                     if (sesion === undefined) throw "Unexpected Internal Error, null pointer to sesion";
                     // If yes, then error
-                    if (sesion.attendence.filter((val) => val == user.cardId).length > 0)
+                    if (sesion.attendence.filter((val) => val.cardId == user.cardId).length > 0)
                         return error("this card is already present", "already done",
                             "reabsen attemb on card ", user.cardId);
                     // add the user to the attendence list

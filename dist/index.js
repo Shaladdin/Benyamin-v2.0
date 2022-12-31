@@ -215,7 +215,7 @@ class Benyamin extends Device {
                     if (sesion === undefined)
                         throw "Unexpected Internal Error, null pointer to sesion";
                     // If yes, then error
-                    if (sesion.attendence.filter((val) => val == user.cardId).length > 0)
+                    if (sesion.attendence.filter((val) => val.cardId == user.cardId).length > 0)
                         return error("this card is already present", "already done", "reabsen attemb on card ", user.cardId);
                     // add the user to the attendence list
                     db.Sesions.update({ _id: sesion._id }, { $push: { attendence: { cardId: user.cardId, time: new Date() } } });
