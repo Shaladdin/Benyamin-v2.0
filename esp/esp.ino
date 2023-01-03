@@ -18,6 +18,9 @@
 
 void setup()
 {
+    Serial.begin(115200);
+    pinInit();
+    beep(1000, 2, 1000);
     WebsocketInit();
 }
 

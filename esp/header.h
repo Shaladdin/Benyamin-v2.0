@@ -7,24 +7,36 @@
 #include <ArduinoWebsockets.h>
 using namespace websockets;
 
-// // outputs pin
-// #define lamp D1
-// #define fan D2
-// #define buzzer D0
-// const int outputs[] = {lamp, fan, buzzer};
+// DEVICE INFO
+#define DEVICEID F("c137-69420")
+
+
+
+
+// outputs pin
+#define LED D0
+#define buzzer D8
+void Buzzer(bool state, double freq = 400);
+const int outputs[] = {LED, buzzer};
 
 // // ir
 // #define irDalam D6
 // #define irLuar D5
-// const int inputs[] = {irDalam, irLuar};
+const int inputs[] = {};
 
-// void pinInit();
+void pinInit();
+
+// utils
+void beep(int duration, int n, double freq = 400, bool includeLED = true);
+
 
 // Websocket
+int MaxMemory();
 void sendWs(String &in);
 void WebsocketInit();
 void WebsocketRun();
 extern bool activated;
+extern bool connectedToServer;
 
 // // Security
 // extern bool securityMode;

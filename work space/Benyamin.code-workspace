@@ -14,6 +14,15 @@
         },
         {
             "path": "../../../LOMBA/MRC"
+        },
+        {
+            "path": "../../../../../GitHub/NpmModules/WebSocketIOT"
         }
-    ]
+    ],
+    "settings": {
+        "files.associations": {
+            "*.tcc": "cpp",
+            "vector": "cpp"
+        }
+    }
 }
