@@ -7,7 +7,7 @@ void beep(int duration, int n, double freq, bool includeLED)
     for (int i = 0; i < n; i++)
     {
         digitalWrite(LED, state);
-        Buzzer(state);
+        Buzzer(state, freq);
         state = !state;
         delay(duration / n);
     }
@@ -21,4 +21,10 @@ void Buzzer(bool state, double freq)
         tone(buzzer, freq);
     else
         noTone(buzzer);
+}
+
+void space(int len)
+{
+    for (int i = 0; i < len; i++)
+        Serial.println();
 }

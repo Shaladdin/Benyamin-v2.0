@@ -1,9 +1,13 @@
 // Copied from MRC
-
+#include <SPI.h>
+#include <Wire.h>
 #include <Arduino.h>
+#include <MFRC522.h>
 #include <ArduinoJson.h>
-// #include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <Adafruit_MLX90614.h>
+#include <LiquidCrystal_I2C.h>
 #include <ArduinoWebsockets.h>
 using namespace websockets;
 
@@ -11,23 +15,22 @@ using namespace websockets;
 #define DEVICEID F("c137-69420")
 
 
-
+#define log Serial.println
 
 // outputs pin
 #define LED D0
 #define buzzer D8
-void Buzzer(bool state, double freq = 400);
 const int outputs[] = {LED, buzzer};
 
-// // ir
-// #define irDalam D6
-// #define irLuar D5
 const int inputs[] = {};
 
 void pinInit();
 
 // utils
+void Buzzer(bool state, double freq = 400);
 void beep(int duration, int n, double freq = 400, bool includeLED = true);
+void space(int len = 3)
+
 
 
 // Websocket
@@ -35,39 +38,20 @@ int MaxMemory();
 void sendWs(String &in);
 void WebsocketInit();
 void WebsocketRun();
-extern bool activated;
+extern bool authenticated;
 extern bool connectedToServer;
 
-// // Security
-// extern bool securityMode;
-// extern volatile int pendingNotif;
-// void SecurityRun();
+// LCD
+#define LCD_ROW 2
+#define LCD_COLMN 16
 
-// // room detection
-// extern volatile int jumlahOrang;
-// extern volatile bool emptyRoom;
-// extern bool notifSended;
-// void RoomDetectionInit();
-// void RoomDetectionRun();
+struct LCD
+{
+    String currentText[2];
+    bool comingUpdate = false;
 
-// // Software serial
-// extern SoftwareSerial nano;
-// extern bool connectedToNano;
-// void SerialInit();
-// void SerialRun();
-
-// // Sensor Data:
-
-// // sensors reading
-// extern float lpg, co, smoke,
-//     temp, humidity, hIndex,
-//     flame, light;
-
-// // StreamSensor
-// void StreamSensors();
-
-// // smartHome
-// extern bool controllMode;
-// extern float maxBright, maxFlame, maxTemp, maxGas;
-// void SmartHomeRun();
-// void ManualRun();
+    LCD();
+    // replace all text with this one
+    void print(String top, String bottom = "", bool force = true);
+};
+extern LCD lcd;

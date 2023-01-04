@@ -7,22 +7,21 @@
             "path": "../../../../Robotik/Project/LOMBA/MRC"
         },
         {
-            "path": "../../../../Programer stuff/Javascript/playgroundNodeJs"
-        },
-        {
-            "path": "../../../../Robotik/Project/buat sekoalah/Benyamin v2.0"
-        },
-        {
-            "path": "../../../LOMBA/MRC"
-        },
-        {
             "path": "../../../../../GitHub/NpmModules/WebSocketIOT"
+        },
+        {
+            "path": "../../../../../GitHub/IOT/Action-System"
         }
     ],
     "settings": {
         "files.associations": {
             "*.tcc": "cpp",
-            "vector": "cpp"
+            "vector": "cpp",
+            "deque": "cpp",
+            "list": "cpp",
+            "string": "cpp",
+            "unordered_map": "cpp",
+            "system_error": "cpp"
         }
     }
 }

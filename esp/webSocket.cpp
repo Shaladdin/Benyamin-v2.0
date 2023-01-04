@@ -32,7 +32,7 @@ const uint16_t port = 8080; // Enter server port
 WebsocketsClient ws;
 const char *deviceID = "smartHome"; // robotID (to identefied by server)
 
-bool activated = false;
+bool authenticated = false;
 bool connectedToServer = false;
 #define MemorySafetyGap 1024
 
@@ -85,39 +85,46 @@ void WebsocketInit()
     // run callback when messages are received
     ws.onMessage([&](WebsocketsMessage rawMessage)
                  {
-                   String msg = String(rawMessage.data());
-                   Serial.println(F("Got Message: ") + msg);
+    String msg = String(rawMessage.data());
+    Serial.println(F("Got Message: ") + msg);
 
-                   DynamicJsonDocument doc(MaxMemory());
-                   if(!deserialize(doc,msg,true))return;
+    DynamicJsonDocument doc(MaxMemory());
+    if (!deserialize(doc, msg, true))
+        return;
 
+    Serial.println(F("done!"));
+    Serial.print(F("current capacity: "));
+    Serial.println(doc.capacity());
 
-                   Serial.println(F("done!"));
-                   Serial.print(F("current capacity: "));
-                   Serial.println(doc.capacity());
-                   
-                   serializeJsonPretty(doc,Serial);
+    serializeJsonPretty(doc, Serial);
 
-                  //  msg handler
-                   String message = doc[F("message")].as<String>();
-                   if(message == F("auth is requested")){
-                      // send ID
-                      DynamicJsonDocument authRequest(MaxMemory());
-                      String BenyaminRequest = F("{ \"message\": \"authRequest\", \"type\" : \"device\", \"deviceKind\" : \"Benyamin\" }");
-                      if(!deserialize(authRequest,BenyaminRequest))return;
-                      authRequest["id"] = DEVICEID;
-                      authRequest.shrinkToFit();
+    //  msg handler
+    String message = doc[F("message")].as<String>();
+    if (message == F("auth is requested"))
+    {
+        // send ID
+        DynamicJsonDocument authRequest(MaxMemory());
+        String BenyaminRequest = F("{ \"message\": \"authRequest\", \"type\" : \"device\", \"deviceKind\" : \"Benyamin\" }");
+        if (!deserialize(authRequest, BenyaminRequest))
+            return;
+        authRequest["id"] = DEVICEID;
+        authRequest.shrinkToFit();
 
-                      String authRequest_;
-                      serializeJson(authRequest,authRequest_);
-                      sendWs(authRequest_);
-                      return;
-                   }
-                   if(message == F(""))
-                    
-                     ; });
+        String authRequest_;
+        serializeJson(authRequest, authRequest_);
+        sendWs(authRequest_);
+        return;
+    }
+    if (message.indexOf(F("connected as Benyamin")) != -1)
+    {
+        authenticated = true;
+        Serial.println("Benyamin is authenticated");
+        return;
+    }
+
+    ; });
 #if WAIT
-    while (!activated)
+    while (!authenticated)
         WebsocketRun();
 #endif
 }
