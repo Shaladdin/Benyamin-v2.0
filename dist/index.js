@@ -184,9 +184,9 @@ Client.clientHandler = async (req, connection = lcc) => {
         throw e;
     }
 };
-// Main Robot code
 class Benyamin extends Device {
     deviceKind = 'Benyamin';
+    absenBuffer;
     constructor(ws, id) {
         super(ws, async (req) => {
             const { connection } = this;
@@ -213,13 +213,22 @@ class Benyamin extends Device {
                         return error("no sesion is currently running", "not exist", "absen attemp on non existing sesion");
                     const sesion = (await db.Sesions.find({ _id: currentSesion.value }))[0];
                     if (sesion === undefined)
-                        throw "Unexpected Internal Error, null pointer to sesion";
+                        throw "(main code error by me)Unexpected Internal Error, null pointer to sesion";
                     // If yes, then error
                     if (sesion.attendence.filter((val) => val.cardId == user.cardId).length > 0)
                         return error("this card is already present", "already done", "reabsen attemb on card ", user.cardId);
+                    // send them the user name
+                    connection.send({ message: "absenResponse", name: user.name });
+                    // save the data to the buffer while waiting for the temperatur report
+                    this.absenBuffer = { user: user, sesionId: sesion._id };
+                    return "200 ok";
+                case "tempReport":
+                    if (!this.absenBuffer) {
+                        return error("internal server error", "internalError", "buffer is empty!!!");
+                    }
                     // add the user to the attendence list
-                    db.Sesions.update({ _id: sesion._id }, { $push: { attendence: { cardId: user.cardId, time: new Date() } } });
-                    db.Users.update({ _id: user._id }, { $push: { history: sesion._id } });
+                    db.Sesions.update({ _id: this.absenBuffer.sesionId }, { $push: { attendence: { cardId: this.absenBuffer.user.cardId, time: new Date(), temp: req.temp } } });
+                    db.Users.update({ _id: this.absenBuffer.user._id }, { $push: { history: this.absenBuffer.sesionId } });
                     // add sesion to the user history
                     return ok();
                 default:

@@ -4,11 +4,11 @@ LiquidCrystal_I2C lcd_(0x27, LCD_COLMN, LCD_ROW);
 
 LCD::LCD()
 {
-    lcd_.begin(LCD_COLMN, LCD_ROW);
+    lcd_.init();
     lcd_.backlight();
 }
 // lcd function
-void LCD ::print(String top, String bottom = "", bool force = true)
+void LCD ::print(String top, String bottom, bool force)
 {
     if (top == currentText[0] && bottom == currentText[1] && !force)
         return;

@@ -69,7 +69,7 @@ const db = {
 
 
 interface Sesion {
-    attendence: { cardId: string, time: Date }[],
+    attendence: { cardId: string, time: Date, temp: number }[],
     sesionTime: {
         startTime: Date,
         endTime?: Date,
@@ -155,7 +155,7 @@ const literals: Literals = {
 
 // Local Circular Connection //basicly decoy connection just to use the client handler and stuff
 const lcc = new Connection(new WebSocket(null), () => { }, true);
-type handlerResponse = "200 ok" | "no command found" | "wrong format" | "already done" | "not exist" | "pong"
+type handlerResponse = "200 ok" | "no command found" | "wrong format" | "already done" | "not exist" | "pong" | "internalError"
 
 
 //! Main
@@ -264,8 +264,11 @@ Client.clientHandler = async (req, connection = lcc): Promise<handlerResponse> =
 
 
 // Main Robot code
+interface userResult extends User { _id: string }
 class Benyamin extends Device {
     deviceKind: string = 'Benyamin';
+    absenBuffer: { user: userResult, sesionId: string } | undefined;
+
     constructor(ws: WebSocket, id?: string) {
         super(ws, async (req): Promise<handlerResponse> => {
             const { connection } = this;
@@ -287,7 +290,6 @@ class Benyamin extends Device {
                     if (user_.length === 0) return error("card id not found", "not exist",
                         "attemp to absen on non existing user");
 
-                    interface userResult extends User { _id: string }
                     const user: userResult = user_[0];
 
                     // check if there is a sesion running
@@ -298,16 +300,27 @@ class Benyamin extends Device {
                     // get the sesion, then check have they absen already
                     interface sesionResult extends Sesion { _id: string }
                     const sesion: sesionResult = (await db.Sesions.find({ _id: currentSesion.value }))[0];
-                    if (sesion === undefined) throw "Unexpected Internal Error, null pointer to sesion";
+                    if (sesion === undefined) throw "(main code error by me)Unexpected Internal Error, null pointer to sesion";
                     // If yes, then error
                     if (sesion.attendence.filter((val) => val.cardId == user.cardId).length > 0)
                         return error("this card is already present", "already done",
                             "reabsen attemb on card ", user.cardId);
-                    // add the user to the attendence list
-                    db.Sesions.update({ _id: sesion._id }, { $push: { attendence: { cardId: user.cardId, time: new Date() } } })
-                    db.Users.update({ _id: user._id }, { $push: { history: sesion._id } });
-                    // add sesion to the user history
 
+                    // send them the user name
+                    connection.send({ message: "absenResponse", name: user.name });
+                    // save the data to the buffer while waiting for the temperatur report
+                    this.absenBuffer = { user: user, sesionId: sesion._id };
+
+
+                    return "200 ok";
+                case "tempReport":
+                    if (!this.absenBuffer) {
+                        return error("internal server error", "internalError", "buffer is empty!!!");
+                    }
+                    // add the user to the attendence list
+                    db.Sesions.update({ _id: this.absenBuffer.sesionId }, { $push: { attendence: { cardId: this.absenBuffer.user.cardId, time: new Date(), temp: req.temp } } })
+                    db.Users.update({ _id: this.absenBuffer.user._id }, { $push: { history: this.absenBuffer.sesionId } });
+                    // add sesion to the user history
                     return ok();
                 default:
                     return noCommandFound();
