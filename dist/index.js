@@ -231,6 +231,9 @@ class Benyamin extends Device {
                     db.Users.update({ _id: this.absenBuffer.user._id }, { $push: { history: this.absenBuffer.sesionId } });
                     // add sesion to the user history
                     return ok();
+                case "cancel":
+                    this.absenBuffer = undefined;
+                    return ok();
                 default:
                     return noCommandFound();
             }

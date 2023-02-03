@@ -23,6 +23,7 @@
             "unordered_map": "cpp",
             "system_error": "cpp",
             "cmath": "cpp"
-        }
+        },
+        "liveServer.settings.multiRootWorkspaceName": "Benyamin v2.0"
     }
 }

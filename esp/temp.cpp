@@ -17,7 +17,7 @@ double tempRun()
     double reading = termogun.readObjectTempC();
     if (isnan(reading))
     {
-        Serial.print(F("FAILED READING:"));
+        Serial.println(F("FAILED READING:"));
         logTemp();
         return -69420;
     }

@@ -6,11 +6,11 @@
 unsigned long int homeTimer;
 void setHomeTimer()
 {
-    homeTimer = millis() + 2 detik;
+    homeTimer = millis() + 5 detik;
 }
-void home()
+void home(bool force)
 {
-    lcd.print(F("Tempelkan kartu"), F("mu disini :)"));
+    lcd.print(F("Tempelkan kartu"), F("mu disini"),force);
 }
 
 void setup()

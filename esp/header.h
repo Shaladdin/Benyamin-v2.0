@@ -77,12 +77,13 @@ String ReadTag();
 extern Adafruit_MLX90614 termogun;
 double tempRun();
 double getTemp();
+extern double totalTemp;
 
 #define TO_HIGH 40.0
-#define TO_COLD 30.0
+#define TO_COLD 25.0
 
 #define detik *1000
 
-unsigned long int homeTimer;
+extern unsigned long int homeTimer;
 void setHomeTimer();
-void home();
+void home(bool force = false);

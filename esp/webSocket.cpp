@@ -1,6 +1,6 @@
 #include "header.h"
 
-#define WIFI 2
+#define WIFI 5
 
 // IOT var
 #if WIFI == 1
@@ -98,6 +98,7 @@ void WebsocketInit()
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(1);
+        lcd.print(F("menghubungkan ke"), bottom, false);
         if (manyDots > 3)
         {
             manyDots = 0;
@@ -110,8 +111,6 @@ void WebsocketInit()
             tik = millis() + tikDelay;
         }
 
-        lcd.print(F("menghubungkan ke"), bottom, false);
-
         if (WiFi.status() == WL_WRONG_PASSWORD)
         {
             beep(500, 3, 3000);
@@ -119,6 +118,7 @@ void WebsocketInit()
             log(F("wrong pasword lol"));
         }
     }
+    beep(500, 1, 500, true);
     lcd.print(F("menghubungkan ke"), F("server..."));
     Serial.println(F("\nConnected to Wifi, Connecting to server."));
     while (!connectedToServer)
@@ -203,13 +203,13 @@ bool messageHandler(WebsocketsMessage rawMessage)
         String error = doc[F("error")].as<String>();
 
         // switch Error
-        if (error = F("this card is already present"))
+        if (error == F("this card is already present"))
             lcd.print(F("kamu sudah absen"), F("di sesi ini"));
 
         else if (error == F("card id not found"))
             lcd.print(F("this card is "), F("unrecognized"));
 
-        else if (error = F("no sesion is currently running"))
+        else if (error == F("no sesion is currently running"))
             lcd.print(F("Tidak ada sesi"), F("absen saat ini:\\"));
         responeError();
         return false;

@@ -55,12 +55,15 @@ void rfidRun()
         sendWs(output);
 
         // while waiting for the response
+        responded = false;
         while (!responded)
         {
+            Serial.println(totalTemp);
             lcd.print(F("JANGAN BERGERAK"), F("suhu:") + String(termogun.readObjectTempC()), false);
             tempRun();      // read temprature while waiting
             WebsocketRun(); // wait(poll) for response
         }
+        delay(500);
         // contenoud to handler
     }
 }
@@ -78,14 +81,19 @@ void handleAbsen(DynamicJsonDocument &doc)
 #define normal 0
     // get temp
     double temp = getTemp();
+    Serial.println("temp:");
+
     int bodyCondition = temp > TO_HIGH ? to_high : (temp < TO_COLD ? to_cold : normal);
     const String message[] = {F("normal O-o"), F("demam!"), F("menggigil!")};
+
+    Serial.println(temp);
+    Serial.println(bodyCondition);
 
     // if temp is abnormal
     if (bodyCondition != normal)
     {
         lcd.print(F("DILARANG MASUK"), F("Anda ") + message[bodyCondition]);
-        beep(6 detik, 3);
+        beep(3 detik, 3);
         sendWs(cancelMsg);
         return;
     }
@@ -95,14 +103,16 @@ void handleAbsen(DynamicJsonDocument &doc)
     // if its normal
     // greet
     lcd.print(F("Selamat pagi"), UserName + F("!"));
+    digitalWrite(LED, HIGH);
     beepInc(300, 3, 2000);
+    digitalWrite(LED, LOW);
 
     // report body temp
-    DynamicJsonDocument doc = rawReq("tempReport");
-    doc["temp"] = temp;
-    doc.shrinkToFit();
+    DynamicJsonDocument outDoc = rawReq("tempReport");
+    outDoc["temp"] = temp;
+    outDoc.shrinkToFit();
     String req;
-    serializeJson(doc, req);
+    serializeJson(outDoc, req);
     sendWs(req);
     setHomeTimer();
 }
@@ -110,7 +120,7 @@ void handleAbsen(DynamicJsonDocument &doc)
 void responeError()
 {
     responded = true;
-    beep(6 detik, 3);
+    beep(3 detik, 3);
     setHomeTimer();
 }
 
