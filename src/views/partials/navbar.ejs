@@ -1,0 +1,34 @@
+<nav>
+  <div class="content">
+
+    <div id="home">
+      <a href="./home">
+        <img src="./svg/nav/<%= selected === "home" ? "light" : "dark" %>/home.svg" alt="">
+      </a>
+    </div>
+
+    <div id="sesion">
+      <a href="./sesion">
+        <img src="./svg/nav/<%= selected === "sesion" ? "light" : "dark" %>/time-past.svg" alt="">
+      </a>
+    </div>
+
+    <div id="currentSesion">
+      <a href="./sesion/current">
+        <img src="./svg/nav/<%= selected === "currentSesion" ? "light" : "dark" %>/signal-stream.svg" alt="">
+      </a>
+    </div>
+
+    <div id="user">
+      <a href="./user">
+        <img src="./svg/nav/<%= selected === "user" ? "light" : "dark" %>/users-alt.svg" alt="">
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+<script>
+  const selectedTab = document.getElementById("<%= selected %>");
+  selectedTab.classList.add("selected");
+</script>

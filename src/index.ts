@@ -1,3 +1,5 @@
+import path from 'path';
+import express from 'express';
 import WebSocket from 'ws';
 import nedb from 'nedb';
 import IOTServer, {
@@ -5,6 +7,7 @@ import IOTServer, {
     msgTransmiter, MsgHandler, ConnectionType, //types
     BasicWsiotMsg, WsiotMsg, AuthMsg, MessageLiterals, ServerOption, //Interfaces
 } from "websocketiot"
+const __dirname = process.cwd();
 /*
 TODO: error handler on:
 *database
@@ -12,6 +15,7 @@ TODO: error handler on:
 
 */
 // Utils
+// console.log();
 const sleep = (milliseconds: number) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
@@ -89,7 +93,6 @@ interface User {
     },
     history: string[]
 }
-
 // * "an compiler code, because typescript lacking in built in function .-_-."
 // client
 const blankTime = new Date();
@@ -158,12 +161,11 @@ const lcc = new Connection(new WebSocket(null), () => { }, true);
 type handlerResponse = "200 ok" | "no command found" | "wrong format" | "already done" | "not exist" | "pong" | "internalError"
 
 
-//! Main
-const Server = new IOTServer({ port: 8080, usePublic: true });
-
-
+interface sesionResult extends Sesion { _id: string }
 const currentSesion = new dbObject<string>("currentSesion", "none");
 await currentSesion.loadValue();
+const getCurrentSesion = async () => (await db.Sesions.find({ _id: currentSesion.value }))[0]
+
 
 // handler utils
 class Handler {
@@ -298,8 +300,7 @@ class Benyamin extends Device {
                         return error("no sesion is currently running", "not exist",
                             "absen attemp on non existing sesion");
                     // get the sesion, then check have they absen already
-                    interface sesionResult extends Sesion { _id: string }
-                    const sesion: sesionResult = (await db.Sesions.find({ _id: currentSesion.value }))[0];
+                    const sesion: sesionResult = await getCurrentSesion();
                     if (sesion === undefined) throw "(main code error by me)Unexpected Internal Error, null pointer to sesion";
                     // If yes, then error
                     if (sesion.attendence.filter((val) => val.cardId == user.cardId).length > 0)
@@ -325,6 +326,9 @@ class Benyamin extends Device {
                 case "cancel":
                     this.absenBuffer = undefined;
                     return ok();
+
+
+
                 default:
                     return noCommandFound();
             }
@@ -344,7 +348,73 @@ function stopSesion() {
     currentSesion.value = "none";
 }
 
+
+
+
+
+//! Main
+const Server = new IOTServer({ port: 8000, usePublic: true, publicPath: path.join(__dirname, 'src', 'public'), initOnStart: false, useRouter: false, routersPath: path.join(__dirname, 'dist', 'router'), });
+const { app } = Server;
+app.set('views', path.join(__dirname, 'src', 'views'));
+app.set('view engine', 'ejs');
+Server.init();
+
+
+const render = (res: express.Response, tab: string, obj = {}) => {
+    res.render(tab, { selected: tab, ...obj });
+}
+
+
+//* get
+app.get('/home', (req, res) => render(res, "home"))
+app.get('/', (req, res) => render(res, "home"))
+
+
+
+app.get('/user', async (req, res) => {
+    render(res, "users", { selected: "user", users: await db.Users.find({}) })
+})
+app.get('/user/:id', async (req, res) => {
+    const { id } = req.params
+    var User: User = (await db.Users.find({ cardId: id }))[0];
+    render(res, "user", { user: User });
+})
+
+//*post
+app.post('/sesion/new', async (req, res) => {
+    console.log(await Client.clientHandler({ message: "sesion", type: "new" }));
+
+})
+
+// app.get('/sesion/current', async (req, res) => {
+//     const { value: sesionId } = currentSesion;
+//     if (sesionId === "none") {
+//         render(res, "noSesion", { selected: "currentSesion" })
+//         return;
+//     }
+//     const sesion = await getCurrentSesion()
+//     var report: Array<{ name: string, temp: number }> = [];
+//     var
+
+//     sesion.attendence.forEach((absen: { cardId: string, temp: number }) => {
+//         const { cardId, temp } = absen;
+//         db.Users.find({ cardId: cardId })
+//         // report.push({ name: user.name, temp: temp });
+//     });
+//     console.log(report);
+
+//     render(res, "sesion", { selected: "currentSesion", });
+
+// })
+app.get('/sesion', async (req, res) => {
+    render(res, "history", { selected: "sesion", history: await db.Sesions.find({}) })
+})
+app.get('/sesion/:id', async (req, res) => {
+    const { id } = req.params;
+    render(res, "sesion", { sesion: await db.Sesions.find({ _id: id }) });
+})
+
 /*
 !low priority todo:
 TODO: User.edit
-*/ 
+*/

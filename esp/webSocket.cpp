@@ -1,6 +1,6 @@
 #include "header.h"
 
-#define WIFI 5
+#define WIFI 3
 
 // IOT var
 #if WIFI == 1
@@ -22,6 +22,10 @@ const char *password = "ASDFGHJKL;'"; // Enter Password
 #if WIFI == 5
 const char *ssid = "BukanAdzka";    // Enter SSID
 const char *password = "123456789"; // Enter Password
+#endif
+#if WIFI == 6
+const char *ssid = "Cak Mhd Fam";    // Enter SSID
+const char *password = "MhdLiana123"; // Enter Password
 #endif
 
 #define WAIT true

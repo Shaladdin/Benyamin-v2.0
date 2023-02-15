@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Benyamin v2.0</title>
+  <link rel="shortcut icon" href="./svg/misky.svg" type="image/x-icon">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<style>
+  .content#sesion {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .content#sesion .holder {
+    padding: 10px;
+    width: 25%;
+    min-width: 200px;
+  }
+</style>
+
+<body>
+  <%- include('partials/navbar.ejs') %>
+  <div id="main">
+    <%- include('partials/currentSesion.ejs') %>
+    <div class="content" id="sesion">
+      <div class="holder">
+        <h2>Murid hadir</h2>
+        <div class="content">
+
+        </div>
+      </div>
+
+
+      <div class="holder">
+        <h2>Murid tidak hadir</h2>
+        <div class="content">
+          <div class="murid title">
+            <h4 class="name">nama:</h4>
+            <h4 class="temp">suhu:</h4>
+          </div>
+        </div>
+      </div>
+      
+
+      <div class="holder">
+        <h2>Detail</h2>
+      <div class="content">
+
+      </div>
+      </div>
+
+
+    </div>
+    <%- include('partials/footer.ejs') %>
+  </div>
+</body>
+
+<script src="./js/common.js"></script>
+
+</html>
