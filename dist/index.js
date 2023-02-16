@@ -276,23 +276,23 @@ app.get('/user/:id', async (req, res) => {
 app.post('/sesion/new', async (req, res) => {
     console.log(await Client.clientHandler({ message: "sesion", type: "new" }));
 });
-// app.get('/sesion/current', async (req, res) => {
-//     const { value: sesionId } = currentSesion;
-//     if (sesionId === "none") {
-//         render(res, "noSesion", { selected: "currentSesion" })
-//         return;
-//     }
-//     const sesion = await getCurrentSesion()
-//     var report: Array<{ name: string, temp: number }> = [];
-//     var
-//     sesion.attendence.forEach((absen: { cardId: string, temp: number }) => {
-//         const { cardId, temp } = absen;
-//         db.Users.find({ cardId: cardId })
-//         // report.push({ name: user.name, temp: temp });
-//     });
-//     console.log(report);
-//     render(res, "sesion", { selected: "currentSesion", });
-// })
+app.get('/sesion/current', async (req, res) => {
+    const { value: sesionId } = currentSesion;
+    if (sesionId === "none") {
+        render(res, "noSesion", { selected: "currentSesion" });
+        return;
+    }
+    const sesion = await getCurrentSesion();
+    var report = [];
+    // var
+    sesion.attendence.forEach((absen) => {
+        const { cardId, temp } = absen;
+        db.Users.find({ cardId: cardId });
+        // report.push({ name: user.name, temp: temp });
+    });
+    console.log(report);
+    render(res, "sesion", { selected: "currentSesion", });
+});
 app.get('/sesion', async (req, res) => {
     render(res, "history", { selected: "sesion", history: await db.Sesions.find({}) });
 });

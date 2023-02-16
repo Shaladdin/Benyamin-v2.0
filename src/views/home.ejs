@@ -11,10 +11,23 @@
   <link rel="stylesheet" href="./css/style.css">
 </head>
 
+<style>
+  #about {
+    margin: auto;
+    width: fit-content;
+    width: 80%;
+    max-width: 800px;
+
+  }
+</style>
+
 <body>
   <%- include('partials/navbar.ejs') %>
   <div id="main">
     <%- include('partials/header.ejs') %>
+    <div class="holder" id="about">
+      <p><span class="rainbow-text">Benyamin</span> adalah sistem absensi yang di rancang untuk mempercepat proses absensi dibandingkan dengan sistem absensi manual dengan menggunakan teknologi <span class="rainbow-text">IOT</span> dan <span class="rainbow-text">RFID</span> </p>
+    </div>
     <%- include('partials/footer.ejs') %>
   </div>
 </body>

@@ -1,6 +1,6 @@
 #include "header.h"
 
-#define WIFI 3
+#define WIFI 6
 
 // IOT var
 #if WIFI == 1
